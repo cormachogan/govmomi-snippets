@@ -238,7 +238,7 @@ func main() {
 
 //-------------------------------------------------------------------
 //
-//     c, err - Return the client object c and an error object err
+//     c2, err - Return the client object c and an error object err
 //     govmomi.NewClient - Call the function from the govmomi package
 //     ctx - Pass in the shared context
 //
