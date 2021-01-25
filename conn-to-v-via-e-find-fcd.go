@@ -1,37 +1,3 @@
-//
-// Go code to connect to vSphere via environment
-// variables and retrieve the first class disk info
-//
-// -- Cormac J. Hogan (VMware)
-//
-// -- 25 Jan 2021
-//
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-// Client information from Doug MacEachern:
-//
-// govmomi.Client extends vim25.Client
-// govmomi.Client does nothing extra aside from automatic login
-//
-// In the early days (2015), govmomi.Client did much more, but we moved most of it to vim25.Client.
-// govmomi.Client remained for compatibility and minor convenience.
-//
-// Using soap.Client and vim25.Client directly allows apps to use other authentication methods,
-// session caching, session keepalive, retries, fine grained TLS configuration, etc.
-//
-// For the inventory, ContainerView is a vSphere primitive.
-// Compared to Finder, ContainerView tends to use less round trip calls to vCenter.
-// It may generate more response data however.
-//
-// Finder was written for govc, where we treat the vSphere inventory as a virtual filesystem.
-// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths, wildcard matching, etc.
-//
-// Use govc commands as a reference, and "godoc" for examples that can be run against `vcsim`:
-// See: https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
-//
-//------------------------------------------------------------------------------------------------------------------------------------
-
-
 package main
 
 import (
@@ -45,8 +11,8 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
-    "github.com/vmware/govmomi/vim25"
-    "github.com/vmware/govmomi/session/cache"
+        "github.com/vmware/govmomi/vim25"
+        "github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
@@ -65,16 +31,15 @@ func (n dsByName) Less(i, j int) bool { return n[i].Name < n[j].Name }
 
 
 func main() {
-
-//
-// 3 environment variables are required in order to connect to the vSphere infra
-//
-// Set these in your shell to reflect your vSphere infra:
-//
-// GOVMOMI_URL
-// GOVMOMI_USERNAME
-// GOVMOMI_PASSWORD
-//
+	//
+	// 3 environment variables are required in order to connect to the vSphere infra
+	//
+	// Set these in your shell to reflect your vSphere infra:
+	//
+	// GOVMOMI_URL
+	// GOVMOMI_USERNAME
+	// GOVMOMI_PASSWORD
+	//
 
 	vc := os.Getenv("GOVMOMI_URL")
 
@@ -102,26 +67,26 @@ func main() {
 		return
 	}
 
-//
-// This section allows for insecure vSphere logins
-//
+	//
+	// This section allows for insecure vSphere logins
+	//
 
 	var insecure bool
 	flag.BoolVar(&insecure, "insecure", true, "ignore any vCenter TLS cert validation error")
 
-//
-// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
-// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
-//
+	//
+	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	//
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-//
-// Create a vSphere/vCenter client
-//
-//    The govmomi client requires a URL object not just a string representation of the vCenter URL
-//
+	//
+	// Create a vSphere/vCenter client
+	//
+	//    The govmomi client requires a URL object not just a string representation of the vCenter URL
+	//
 
 	u, err := soap.ParseURL(vc)
 
@@ -136,22 +101,24 @@ func main() {
 
 	u.User = url.UserPassword(user, pwd)
 
-//-------------------------------------------------------------------
-//
-//     c, err - Return the client object c and an error object err
-//
-//     govmomi.NewClient - Call the function from the govmomi package
-/
-//     ctx - Pass in the shared context
-//
-//  A lot of GO functions return more than one variable/object
-//  The majority also return an object of type error.
-//
-//  If the function call is successful it returns nil in the place of an error object.
-//
-//  If something goes wrong the function should create a new error object with the appropriate messaging.
-//
-//-------------------------------------------------------------------
+	//-------------------------------------------------------------------
+	//
+	//     c, err - Return the client object c and an error object err
+	//
+	//     govmomi.NewClient - Call the function from the govmomi package
+	//
+	//     ctx - Pass in the shared context
+	//
+	//-------------------------------------------------------------------
+
+	//
+	//  A lot of GO functions return more than one variable/object
+	//  The majority also return an object of type error.
+	//
+	//  If the function call is successful it returns nil in the place of an error object.
+	//
+	//  If something goes wrong the function should create a new error object with the appropriate messaging.
+	//
 
 	c, err := govmomi.NewClient(ctx, u, insecure)
 
@@ -166,16 +133,16 @@ func main() {
 		fmt.Println("")
 	}
 
-//
-// -- "find" implements inventory listing and searching.
-// -- https://gowalker.org/github.com/vmware/govmomi/find
-//
+	//
+	// -- "find" implements inventory listing and searching.
+	// -- https://gowalker.org/github.com/vmware/govmomi/find
+	//
 
 	finder := find.NewFinder(c.Client, true)
 
-//
-// -- find and set the default datacenter
-//
+	//
+	// -- find and set the default datacenter
+	//
 
 	dc, err := finder.DefaultDatacenter(ctx)
 
@@ -191,15 +158,15 @@ func main() {
 		finder.SetDatacenter(dc)
 	}
 
-//-------------------------------------------------------------
 //
 // Find the datastores available on this vSphere Infrastructure
+//
+
 //
 // Retrieve summary property for all datastores
 //
 // -- http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Datastore.html
 //
-//-------------------------------------------------------------
 
 	dss, err := finder.DatastoreList(ctx, "*")
         if err != nil {
@@ -332,6 +299,7 @@ func main() {
 				fmt.Fprintf(tw, "\tFCD FilePath          : %s\n", backing.FilePath) 
 				fmt.Fprintf(tw, "\tFCD Backing Object Id : %s\n", backing.BackingObjectId) 
 				fmt.Fprintf(tw, "\tFCD Delta Size (MB)   : %v\n", backing.DeltaSizeInMB) 
+				fmt.Fprintf(tw, "\tFCD Provisioning Type : %v\n", backing.ProvisioningType) 
 
 				fmt.Fprintf(tw, "\n")
 			}
