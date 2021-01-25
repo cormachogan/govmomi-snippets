@@ -1,6 +1,6 @@
 //
 // Go code to connect to vSphere via environment
-// variables and retrieve the defautl datacenter
+// variables and retrieve the default datacenter
 //
 // -- Cormac J. Hogan (VMware)
 //

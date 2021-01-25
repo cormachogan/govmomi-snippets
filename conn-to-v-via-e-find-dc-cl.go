@@ -1,6 +1,7 @@
 //
 // Go code to connect to vSphere via environment
-// variables and retrieve the defautl datacenter
+// variables and retrieve vSphere hosts, datastores
+// and virtual machines
 //
 // -- Cormac J. Hogan (VMware)
 //
