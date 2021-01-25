@@ -1,3 +1,29 @@
+//------------------------------------------------------------------------------------------------------------------------------------
+//
+// client information from Doug MacEachern
+//
+// govmomi.Client extends vim25.Client
+// govmomi.Client does nothing extra aside from automatic login
+//
+// In the early days (2015), govmomi.Client did much more, but we moved most of it to vim25.Client.
+// govmomi.Client remained for compatibility and minor convenience.
+//
+// Using soap.Client and vim25.Client directly allows apps to use other authentication methods,
+// session caching, session keepalive, retries, fine grained TLS configuration, etc.
+//
+// For the inventory, ContainerView is a vSphere primitive.
+// Compared to Finder, ContainerView tends to use less round trip calls to vCenter.
+// It may generate more response data however.
+//
+// Finder was written for govc, where we treat the vSphere inventory as a virtual filesystem.
+// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths, wildcard matching, etc.
+//
+// Use govc commands as a reference, and "godoc" for examples that can be run against `vcsim`:
+// See: https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
+//
+//------------------------------------------------------------------------------------------------------------------------------------
+
+
 package main
 
 import (
