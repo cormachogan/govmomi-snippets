@@ -1,6 +1,14 @@
+//
+// Go code to connect to vSphere via environment
+// variables and retrieve the defautl datacenter
+//
+// -- Cormac J. Hogan (VMware)
+//
+// -- 25 Jan 2021
+//
 //------------------------------------------------------------------------------------------------------------------------------------
 //
-// client information from Doug MacEachern
+// Client information from Doug MacEachern:
 //
 // govmomi.Client extends vim25.Client
 // govmomi.Client does nothing extra aside from automatic login

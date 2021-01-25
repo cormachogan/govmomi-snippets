@@ -1,6 +1,14 @@
+//
+// Go code to connect to vSphere via environment
+// variables and retrieve the defautl datacenter
+//
+// -- Cormac J. Hogan (VMware)
+//
+// -- 25 Jan 2021
+//
 //------------------------------------------------------------------------------------------------------------------------------------
 //
-// client information from Doug MacEachern
+// Some  useful client information from Doug MacEachern:
 //
 // govmomi.Client extends vim25.Client
 // govmomi.Client does nothing extra aside from automatic login
@@ -23,16 +31,6 @@
 //
 //------------------------------------------------------------------------------------------------------------------------------------
 //
-// functionality comes from the following packages
-//
-//    context        - https://golang.org/pkg/context/
-//    flag           - https://golang.org/pkg/flag/
-//    fmt            - https://golang.org/pkg/fmt/
-//    net/url        - https://golang.org/pkg/net/url/
-//    os             - https://golang.org/pkg/os/
-//    text/tabwriter - https://golang.org/pkg/text/tabwriter/
-//
-//    govmomi        - https://github.com/vmware/govmomi
 
 package main
 
@@ -126,24 +124,24 @@ func main() {
 
 	u.User = url.UserPassword(user, pwd)
 
-	//-------------------------------------------------------------------
-	//
-	//     c, err - Return the client object c and an error object err
-	//
-	//     govmomi.NewClient - Call the function from the govmomi package
-	//
-	//     ctx - Pass in the shared context
-	//
-	//-------------------------------------------------------------------
+//-------------------------------------------------------------------
+//
+//     c, err - Return the client object c and an error object err
+//
+//     govmomi.NewClient - Call the function from the govmomi package
+//
+//     ctx - Pass in the shared context
+//
+//-------------------------------------------------------------------
 
-	//
-	//  A lot of GO functions return more than one variable/object
-	//  The majority also return an object of type error.
-	//
-	//  If the function call is successful it returns nil in the place of an error object.
-	//
-	//  If something goes wrong the function should create a new error object with the appropriate messaging.
-	//
+//
+//  A lot of GO functions return more than one variable/object
+//  The majority also return an object of type error.
+//
+//  If the function call is successful it returns nil in the place of an error object.
+//
+//  If something goes wrong the function should create a new error object with the appropriate messaging.
+//
 
 	c, err := govmomi.NewClient(ctx, u, insecure)
 
@@ -158,15 +156,15 @@ func main() {
 		fmt.Println("")
 	}
 
-	//
-	// -- "find" implements inventory listing and searching.
-	//
+//
+// -- "find" implements inventory listing and searching.
+//
 
 	finder := find.NewFinder(c.Client, true)
 
-	//
-	// -- find and set the default datacenter
-	//
+//
+// -- find and set the default datacenter
+//
 
 	dc, err := finder.DefaultDatacenter(ctx)
 
@@ -182,9 +180,9 @@ func main() {
 		finder.SetDatacenter(dc)
 	}
 
-	//
-	// -- display the hosts in the datacenter
-	//
+//
+// -- display the hosts in the datacenter
+//
 
 	hosts, err := finder.HostSystemList(ctx, "*")
 
@@ -201,30 +199,30 @@ func main() {
 			fmt.Printf("Found host: %s\n", hosts[i])
 		}
 	}
-	//
-	// -- logout
-	//
+//
+// -- logout
+//
 	c.Logout(ctx)
 
-	//-------------------------------------------------------------------
-	//
-	//     Now lets try the vim25 client rather thant the govmomi client
-	//
-	//     vimc, err - Return the client object vimc and an error object err
-	//     vim25.NewClient - Call the function from the vim25 package
-	//     ctx - Pass in the shared context
-	//
-	//-------------------------------------------------------------------
+//-------------------------------------------------------------------
+//
+//     Now lets try the vim25 client rather thant the govmomi client
+//
+//     vimc, err - Return the client object vimc and an error object err
+//     vim25.NewClient - Call the function from the vim25 package
+//     ctx - Pass in the shared context
+//
+//-------------------------------------------------------------------
 
-	//
-	// Ripped from https://github.com/vmware/govmomi/blob/master/examples/examples.go
-	//
 
-	//
-	// Share govc's session cache - using soap.Client and vim25.Client directly allows apps
-	// to use other authentication methods, session caching, session keepalive, retries,
-	// fine grained TLS configuration, etc.
-	//
+//-------------------------------------------------------------------
+//
+// Share govc's session cache - using soap.Client and vim25.Client 
+// directly allows apps to use other authentication methods, session 
+// caching, session keepalive, retries, fine grained TLS configuration, 
+// etc.
+//
+//-------------------------------------------------------------------
 
 	s := &cache.Session{
 		URL:      u,
@@ -245,14 +243,17 @@ func main() {
 		fmt.Println("")
 	}
 
-	//
-	// Create a ContainerView of HostSystem objects
-	// For the inventory, ContainerView is a vSphere primitive.
-	// Compared to Finder, this tends to use less round trip calls to vCenter,
-	// but may generate more response data.
-	//
-	// ContainerView examples can be found here - https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
-	//
+//-------------------------------------------------------------------
+//
+// Create a ContainerView of HostSystem objects
+// For the inventory, ContainerView is a vSphere primitive.
+// Compared to Finder, this tends to use less round trip calls to vCenter,
+// but may generate more response data.
+//
+// ContainerView examples can be found here:
+// - https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
+//
+//-------------------------------------------------------------------
 
 	m := view.NewManager(vimc)
 
@@ -265,11 +266,15 @@ func main() {
 
 	defer v.Destroy(ctx)
 
-	//
-	// Retrieve summary property for all entities in the view of types specificied by the kind HostSystem
-	// and store them in array of managed objects (mo) called hss[]
-	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
-	//
+//-------------------------------------------------------------------
+//
+// Retrieve summary property for all entities in the view of types 
+// specificied by the kind HostSystem and store them in array of 
+// managed objects (mo) called hss[]
+//
+// -- http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
+//
+//-------------------------------------------------------------------
 
 	var hss []mo.HostSystem
 	err = v.Retrieve(ctx, []string{"HostSystem"}, []string{"summary"}, &hss)
@@ -279,9 +284,9 @@ func main() {
 		fmt.Println("")
 	}
 
-	//
-	// -- Print summary per host (see also: govc/host/info.go)
-	//
+//
+// -- Print summary per host (see also: govc/host/info.go)
+//
 
 	tw := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	fmt.Fprintf(tw, "Name:\tUsed CPU:\tTotal CPU:\tFree CPU:\tUsed Memory:\tTotal Memory:\tFree Memory:\t\n")
@@ -302,17 +307,15 @@ func main() {
 
 	_ = tw.Flush()
 
-	//
-	// -- display the datastores in the datacenter
-	//
-
-	//-------------------------------------------------------------------
-	//
-	//     c2, err - Return the client object c and an error object err
-	//     govmomi.NewClient - Call the function from the govmomi package
-	//     ctx - Pass in the shared context
-	//
-	//-------------------------------------------------------------------
+//-------------------------------------------------------------------
+//
+// -- display the datastores in the datacenter
+//
+//     c2, err - Return the client object c and an error object err
+//     govmomi.NewClient - Call the function from the govmomi package
+//     ctx - Pass in the shared context
+//
+//-------------------------------------------------------------------
 
 	c2, err := govmomi.NewClient(ctx, u, insecure)
 
@@ -327,15 +330,15 @@ func main() {
 		fmt.Println("")
 	}
 
-	//
-	// -- find implements inventory listing and searching.
-	//
+//
+// -- find implements inventory listing and searching.
+//
 
 	finder2 := find.NewFinder(c2.Client, true)
 
-	//
-	// -- find and set the datacenter
-	//
+//
+// -- find and set the datacenter
+//
 
 	dc2, err := finder2.DefaultDatacenter(ctx)
 
@@ -366,8 +369,8 @@ func main() {
 		}
 	}
 	fmt.Println("")
-	//
-	// -- logout
-	//
+//
+// -- logout
+//
 	c2.Logout(ctx)
 }
