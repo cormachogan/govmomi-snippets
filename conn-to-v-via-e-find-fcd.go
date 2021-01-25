@@ -45,8 +45,8 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
-        "github.com/vmware/govmomi/vim25"
-        "github.com/vmware/govmomi/session/cache"
+    "github.com/vmware/govmomi/vim25"
+    "github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
@@ -96,7 +96,7 @@ func main() {
 	pwd := os.Getenv("GOVMOMI_PASSWORD")
 
 	if len(pwd) > 0 {
-		fmt.Printf("DEBUG: password is %s\n", user)
+		fmt.Printf("DEBUG: password is %s\n", pwd)
 	} else {
 		fmt.Printf("Unable to find env GOVMOMI_PASSWORD, has it been set?\n", vc)
 		return

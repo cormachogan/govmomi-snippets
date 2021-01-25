@@ -16,10 +16,12 @@ For subsequent runs, once the imports are local, simply run:
 ```
 
 Two of the scripts show the different ways to connect to vSphere
+
 - via URL
 - via environment variables
 
 The other scripts show how to connect and retrieve various vSphere information, e.g.
+
 - Datacenter
 - Cluster
 - Hosts
@@ -89,7 +91,7 @@ tkg-cluster-1-18-5b-workers-kc5xn-dd68c4685-5v298:  VMware Photon OS (64-bit)
 $ go run conn-to-v-via-e-find-fcd.go
 DEBUG: vc is vcsa-06.rainpole.com/sdk
 DEBUG: user is administrator@vsphere.local
-DEBUG: password is administrator@vsphere.local
+DEBUG: password is ************
 
 Log in successful (govmomi)
 
