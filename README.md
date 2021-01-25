@@ -29,6 +29,7 @@ The other scripts show how to connect and retrieve various vSphere information, 
 
 Here are some example outputs, assuming the environment variables have been set appropriately.
 
+```shell
 $ go run conn-to-v-via-e-find-ho-ds-vm.go
 DEBUG: vc is vcsa-06.rainpole.com/sdk
 DEBUG: user is administrator@vsphere.local
@@ -82,3 +83,4 @@ tkg-cluster-1-18-5b-control-plane-gh2kt:            VMware Photon OS (64-bit)
 elaine-vm:                                          Ubuntu Linux (64-bit)
 vSAN File Service Node (5):                         Other 3.x or later Linux (64-bit)
 tkg-cluster-1-18-5b-workers-kc5xn-dd68c4685-5v298:  VMware Photon OS (64-bit)
+```
