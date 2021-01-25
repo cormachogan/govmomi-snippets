@@ -1,44 +1,3 @@
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-// client information from Doug MacEachern
-//
-// govmomi.Client extends vim25.Client
-// govmomi.Client does nothing extra aside from automatic login
-//
-// In the early days (2015), govmomi.Client did much more, but we moved most of it to vim25.Client.
-// govmomi.Client remained for compatibility and minor convenience.
-//
-// Using soap.Client and vim25.Client directly allows apps to use other authentication methods,
-// session caching, session keepalive, retries, fine grained TLS configuration, etc.
-//
-// For the inventory, ContainerView is a vSphere primitive.
-// Compared to Finder, ContainerView tends to use less round trip calls to vCenter.
-// It may generate more response data however.
-//
-// Finder was written for govc, where we treat the vSphere inventory as a virtual filesystem.
-// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths, wildcard matching, etc.
-//
-// Use govc commands as a reference, and "godoc" for examples that can be run against `vcsim`:
-// See: https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
-//
-// vslm is a utility used to examine First Class Disks or FCDs, which are the
-// special VMDKs which back Persistent Volumes when they are provisioned on
-// vSphere storage
-//
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-// functionality comes from the following packages
-//
-//    context        - https://golang.org/pkg/context/
-//    flag           - https://golang.org/pkg/flag/
-//    fmt            - https://golang.org/pkg/fmt/
-//    net/url        - https://golang.org/pkg/net/url/
-//    os             - https://golang.org/pkg/os/
-//    text/tabwriter - https://golang.org/pkg/text/tabwriter/
-//
-//    govmomi        - https://github.com/vmware/govmomi
-//    vslm           - https://github.com/vmware/govmomi/vslm
-
 package main
 
 import (
@@ -47,27 +6,29 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"sort"
 	"text/tabwriter"
+	"sort"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
-	"github.com/vmware/govmomi/property"
-	"github.com/vmware/govmomi/session/cache"
-	"github.com/vmware/govmomi/vim25"
+        "github.com/vmware/govmomi/vim25"
+        "github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
+	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vslm"
 )
+
 
 //-- sort datastores
 
 type dsByName []mo.Datastore
-
 func (n dsByName) Len() int           { return len(n) }
 func (n dsByName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n dsByName) Less(i, j int) bool { return n[i].Name < n[j].Name }
+
+
 
 func main() {
 	//
@@ -197,17 +158,20 @@ func main() {
 		finder.SetDatacenter(dc)
 	}
 
-	//
-	// Find the datastores
-	//
+//
+// Find the datastores available on this vSphere Infrastructure
+//
 
-	// Retrieve summary property for all datastores
-	// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Datastore.html
+//
+// Retrieve summary property for all datastores
+//
+// -- http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Datastore.html
+//
 
 	dss, err := finder.DatastoreList(ctx, "*")
-	if err != nil {
-		return
-	}
+        if err != nil {
+                return
+        }
 
 	if err != nil {
 		fmt.Println("")
@@ -224,15 +188,20 @@ func main() {
 
 		pc := property.DefaultCollector(c.Client)
 
-		// finder only lists - to get really detailed info,
-		// Convert datastores into list of references
+
+//
+// "finder" only lists - to get really detailed info,
+// Convert datastores into list of references
+//
 
 		var refs []types.ManagedObjectReference
 		for _, ds := range dss {
 			refs = append(refs, ds.Reference())
 		}
 
-		// Retrieve name property for all datastore
+//
+// Retrieve name property for all datastore
+//
 
 		var dst []mo.Datastore
 		err = pc.Retrieve(ctx, refs, []string{"name"}, &dst)
@@ -242,12 +211,13 @@ func main() {
 
 		fmt.Printf("\n")
 
-		// Print name per datastore
-
+//
+// Print name of each datastore
+//
 		tw := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-		fmt.Println("Datastores found:", len(dst))
+        	fmt.Println("Datastores found:", len(dst))
 		fmt.Printf("\n")
-		sort.Sort(dsByName(dst))
+        	sort.Sort(dsByName(dst))
 
 		for _, newds := range dst {
 			fmt.Fprintf(tw, "Found Datastore: %s\n", newds.Name)
@@ -255,39 +225,82 @@ func main() {
 
 		fmt.Printf("\n")
 
-		//
-		// Login using vim25 for vslm - FCD/IVD listings
-		//
+//
+// Login using vim25 for vslm -  this is so that 
+// we can get the First Class Disk (FCD/IVD) listings
+//
 
-		s := &cache.Session{
-			URL:      u,
-			Insecure: true,
-		}
+	        s := &cache.Session{
+       	        	URL:      u,
+       	        	Insecure: true,
+       	 	}
 
-		c2 := new(vim25.Client)
+       	 	c2 := new (vim25.Client)
 
-		err = s.Login(ctx, c2, nil)
+       	 	err = s.Login(ctx, c2, nil)
 
-		if err != nil {
-			fmt.Println("Log in not successful (vim25) - could not get vCenter client: %v", err)
-			return
-		} else {
-			fmt.Println("Log in successful (vim25)")
+       	 	if err != nil {
+       	        	fmt.Println("Log in not successful (vim25) - could not get vCenter client: %v", err)
+       	        	return
+       	 	} else {
+                	fmt.Println("Log in successful (vim25)")
 			fmt.Printf("\n")
 		}
 
+//
+// -- More information about vslm 
+//
+// -- https://pkg.golangclub.com/github.com/vmware/govmomi/vslm?tab=doc
+// -- https://github.com/vmware/govmomi/blob/v0.20.0/vslm/object_manager.go#L190
+//
+
 		m := vslm.NewObjectManager(c2)
 
-		//
-		// -- Now display the FCDs on each datastore
-		//
-		var oids []types.ID
+//
+// -- Display the FCDs on each datastore (held in array dst)
+//
+// -- https://pkg.golangclub.com/github.com/vmware/govmomi/vim25/types?tab=doc#VStorageObject
+//
+
+
+		var objids []types.ID
+		var idinfo *types.VStorageObject
 
 		for _, newds := range dst {
 			fmt.Fprintf(tw, "List of FCDs on datastore: %s\n", newds.Name)
-			oids, err = m.List(ctx, newds)
-			for _, id := range oids {
+			fmt.Fprintf(tw, "\n")
+			objids, err = m.List(ctx, newds)
+//
+// - With the list of FCD Ids, we can get further information about the FCD retrievec in VStorageObject
+//
+			for _, id := range objids {
 				fmt.Fprintf(tw, "\tFound FCD Id: %s\n", id.Id)
+				idinfo, err = m.Retrieve(ctx, newds, id.Id)
+//
+// -- More info:
+// -- https://pkg.golangclub.com/github.com/vmware/govmomi/vim25/types?tab=doc#BaseConfigInfo
+//
+				fmt.Fprintf(tw, "\tFCD Name              : %s\n", idinfo.Config.BaseConfigInfo.Name)
+				fmt.Fprintf(tw, "\tFCD Creation Time     : %s\n", idinfo.Config.BaseConfigInfo.CreateTime)
+				fmt.Fprintf(tw, "\tFCD Size (MB)         : %v\n", idinfo.Config.CapacityInMB)
+				fmt.Fprintf(tw, "\tFCD Consumption Type  : %s\n", idinfo.Config.ConsumptionType)
+//
+// -- More info:
+// -- https://pkg.golangclub.com/github.com/vmware/govmomi/vim25/types?tab=doc#BaseBaseConfigInfoBackingInfo
+//
+				ds := idinfo.Config.BaseConfigInfo.Backing.GetBaseConfigInfoBackingInfo()
+				fmt.Fprintf(tw, "\tFCD Datastore Type    : %v\n", ds.Datastore.Type)
+				fmt.Fprintf(tw, "\tFCD Datastore Info    : %v\n", ds.Datastore.Value)
+//
+// -- More info:
+// -- https://pkg.go.dev/github.com/vmware/govmomi/vim25/types#BaseConfigInfoFileBackingInfo
+//
+				backing := idinfo.Config.BaseConfigInfo.Backing.(*types.BaseConfigInfoDiskFileBackingInfo)
+				fmt.Fprintf(tw, "\tFCD FilePath          : %s\n", backing.FilePath) 
+				fmt.Fprintf(tw, "\tFCD Backing Object Id : %s\n", backing.BackingObjectId) 
+				fmt.Fprintf(tw, "\tFCD Delta Size (MB)   : %v\n", backing.DeltaSizeInMB) 
+
+				fmt.Fprintf(tw, "\n")
 			}
 			fmt.Fprintf(tw, "\n")
 		}
