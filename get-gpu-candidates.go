@@ -6,7 +6,7 @@
 //		There are also 2 pieces of simulation, one which calculated when the next maintenance schedule is
 //		due to take place on each host, and another which reports whether or not a host has a GPU
 //
-//		The first part is not available in vSphere (a maintenance mode scheudle which can be queried).
+//		The first part is not available in vSphere (a maintenance mode schedule which can be queried).
 //
 //		The second part  can be implemented but we would need to know the PCI identifiers to correctly
 //		identify GPUs. Perhaps if the customer wanted a partiocular GPU for their workload, we could implement.
