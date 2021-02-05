@@ -9,9 +9,9 @@ For first time use, run the following:
 ```shell
 % export GO111MODULE=on
 % go get k8s.io/client-go@master
- % go mod init 
- % go build <Filename>.go 
- % go run <Filename>.go
+% go mod init 
+% go build <Filename>.go 
+% go run <Filename>.go
 ```
 
 For subsequent runs, once the imports are local, simply run:
