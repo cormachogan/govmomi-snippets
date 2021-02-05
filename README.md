@@ -2,9 +2,14 @@
 
 A few example govmomi scripts, mostly involving how to connect to vSphere and retrieve some infrastructure information
 
+## Getting started ##
+
 For first time use, run the following:
 
 ```shell
+% export GO111MODULE=on
+% go get k8s.io/client-go@master
+ % go mod init 
  % go build <Filename>.go 
  % go run <Filename>.go
 ```
@@ -15,12 +20,16 @@ For subsequent runs, once the imports are local, simply run:
  % go run <Filename>.go
 ```
 
-Two of the scripts show the different ways to connect to vSphere
+Notes on running "go build": <https://github.com/kubernetes/client-go/blob/master/INSTALL.md#for-the-casual-user>
+
+## About the scripts ##
+
+Two of the modules show the different ways to connect to vSphere
 
 - via URL
 - via environment variables
 
-The other scripts show how to connect and retrieve various vSphere information, e.g.
+The other modules show how to connect and retrieve various vSphere information, e.g.
 
 - Datacenter
 - Cluster
@@ -29,7 +38,14 @@ The other scripts show how to connect and retrieve various vSphere information, 
 - Virtual Machines (VMs)
 - First Class Disks (FCDs) - used to back Kubernetes Persistent Volumes
 
-Here are some example outputs, assuming the environment variables have been set appropriately.
+Finally we have two modules that use a combinatation of vSphere and Kubernetes Code modules:
+
+- Return K8s nodes running on a vSphere infrastructure
+- Return PCI devices on an ESXi device host where a Kubernetes node/VM runs
+
+## Sample outputs ##
+
+Here are some example outputs, assuming the required vSphere `environment variables` have been set appropriately in the shell.
 
 ```shell
 $ go run conn-to-v-via-e-find-ho-ds-vm.go

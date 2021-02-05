@@ -7,60 +7,25 @@
 // -- 25 Jan 2021
 //
 //------------------------------------------------------------------------------------------------------------------------------------
-//
-// Client information from Doug MacEachern:
-//
-// govmomi.Client extends vim25.Client
-// govmomi.Client does nothing extra aside from automatic login
-//
-// In the early days (2015), govmomi.Client did much more, but we moved most of it to vim25.Client.
-// govmomi.Client remained for compatibility and minor convenience.
-//
-// Using soap.Client and vim25.Client directly allows apps to use other authentication methods,
-// session caching, session keepalive, retries, fine grained TLS configuration, etc.
-//
-// For the inventory, ContainerView is a vSphere primitive.
-// Compared to Finder, ContainerView tends to use less round trip calls to vCenter.
-// It may generate more response data however.
-//
-// Finder was written for govc, where we treat the vSphere inventory as a virtual filesystem.
-// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths, wildcard matching, etc.
-//
-// Use govc commands as a reference, and "godoc" for examples that can be run against `vcsim`:
-// See: https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
-//
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-// functionality comes from the following packages
-//
-//    context        - https://golang.org/pkg/context/
-//    flag           - https://golang.org/pkg/flag/
-//    fmt            - https://golang.org/pkg/fmt/
-//    net/url        - https://golang.org/pkg/net/url/
-//    os             - https://golang.org/pkg/os/
-//    text/tabwriter - https://golang.org/pkg/text/tabwriter/
-//
-//    govmomi        - https://github.com/vmware/govmomi
-
 
 package main
-  
+
 import (
-        "context"
-        "fmt"
-        "net/url"
+	"context"
+	"fmt"
+	"net/url"
 	"os"
 	"text/tabwriter"
-	"github.com/vmware/govmomi/vim25/soap"
+
+	"github.com/vmware/govmomi/session/cache"
 	"github.com/vmware/govmomi/units"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/mo"
-	"github.com/vmware/govmomi/session/cache"
+	"github.com/vmware/govmomi/vim25/soap"
 )
 
 func main() {
-
 
 	// We need to get 3 environment variables in order to connect to the vSphere infra
 	//
@@ -69,27 +34,26 @@ func main() {
 	// GOVMOMI_PASSWORD
 	//
 
-	vc := os.Getenv ("GOVMOMI_URL")
-	user := os.Getenv ("GOVMOMI_USERNAME")
-	pwd := os.Getenv ("GOVMOMI_PASSWORD")
+	vc := os.Getenv("GOVMOMI_URL")
+	user := os.Getenv("GOVMOMI_USERNAME")
+	pwd := os.Getenv("GOVMOMI_PASSWORD")
 
+	fmt.Printf("DEBUG: vc is %s\n", vc)
+	fmt.Printf("DEBUG: user is %s\n", user)
+	fmt.Printf("DEBUG: password is %s\n", pwd)
 
-	fmt.Printf ("DEBUG: vc is %s\n", vc)	
-	fmt.Printf ("DEBUG: user is %s\n", user)	
-	fmt.Printf ("DEBUG: password is %s\n", pwd)	
+	//
+	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	//
 
-//
-// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc. 
-// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling. 
-//
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-        ctx, cancel := context.WithCancel(context.Background())
-        defer cancel()
-
-//
-// Create a vSphere/vCenter client
-//
-//    The govmomi client requires a URL object, u, not just a string representation of the vCenter URL.
+	//
+	// Create a vSphere/vCenter client
+	//
+	//    The govmomi client requires a URL object, u, not just a string representation of the vCenter URL.
 
 	u, err := soap.ParseURL(vc)
 
@@ -98,45 +62,45 @@ func main() {
 	}
 
 	if err != nil {
-        	fmt.Println("URL parsing not successful, error %v", err)
-                return
-        }
+		fmt.Println("URL parsing not successful, error %v", err)
+		return
+	}
 
 	u.User = url.UserPassword(user, pwd)
 
-//
-// Ripped from https://github.com/vmware/govmomi/blob/master/examples/examples.go
-//
+	//
+	// Ripped from https://github.com/vmware/govmomi/blob/master/examples/examples.go
+	//
 
-// Share govc's session cache
+	// Share govc's session cache
 	s := &cache.Session{
 		URL:      u,
 		Insecure: true,
 	}
 
-//    c - Return the client object c 
-//    err - Return the error object err
-//    ctx - Pass in the shared context
+	//    c - Return the client object c
+	//    err - Return the error object err
+	//    ctx - Pass in the shared context
 
-	c := new (vim25.Client)
+	c := new(vim25.Client)
 
 	err = s.Login(ctx, c, nil)
 
 	if err != nil {
-        	fmt.Println("Log in not successful- could not get vCenter client: %v", err)
-                return
-        } else {
-        	fmt.Println("Log in successful")
+		fmt.Println("Log in not successful- could not get vCenter client: %v", err)
+		return
+	} else {
+		fmt.Println("Log in successful")
 
-//
-// Create a view manager
-//
+		//
+		// Create a view manager
+		//
 
 		m := view.NewManager(c)
 
-//
-// Create a container view of HostSystem objects
-//
+		//
+		// Create a container view of HostSystem objects
+		//
 
 		v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"HostSystem"}, true)
 
@@ -147,10 +111,10 @@ func main() {
 
 		defer v.Destroy(ctx)
 
-//
-// Retrieve summary property for all hosts
-// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
-//
+		//
+		// Retrieve summary property for all hosts
+		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.HostSystem.html
+		//
 
 		var hss []mo.HostSystem
 
@@ -161,9 +125,9 @@ func main() {
 			return
 		}
 
-//
-// Print summary per host (see also: govc/host/info.go)
-//
+		//
+		// Print summary per host (see also: govc/host/info.go)
+		//
 
 		tw := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 		fmt.Printf("\n*** Host Information ***\n")
@@ -186,9 +150,9 @@ func main() {
 
 		_ = tw.Flush()
 
-//
-// Create a container view of Datastore objects
-//
+		//
+		// Create a container view of Datastore objects
+		//
 
 		v2, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"Datastore"}, true)
 
@@ -199,10 +163,10 @@ func main() {
 
 		defer v2.Destroy(ctx)
 
-//
-// Retrieve summary property for all datastores
-// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Datastore.html
-//
+		//
+		// Retrieve summary property for all datastores
+		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.Datastore.html
+		//
 
 		var dss []mo.Datastore
 		err = v2.Retrieve(ctx, []string{"Datastore"}, []string{"summary"}, &dss)
@@ -212,9 +176,9 @@ func main() {
 			return
 		}
 
-//
-// Print summary per datastore (see also: govc/datastore/info.go)
-//
+		//
+		// Print summary per datastore (see also: govc/datastore/info.go)
+		//
 
 		tw2 := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 		fmt.Printf("\n*** Datastore Information ***\n")
@@ -231,11 +195,9 @@ func main() {
 
 		_ = tw2.Flush()
 
-
-//
-// Create a container view of VM objects
-//
-
+		//
+		// Create a container view of VM objects
+		//
 
 		v3, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
 		if err != nil {
@@ -245,10 +207,10 @@ func main() {
 
 		defer v3.Destroy(ctx)
 
-//
-// Retrieve summary property for all machines
-// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
-//
+		//
+		// Retrieve summary property for all machines
+		// Reference: http://pubs.vmware.com/vsphere-60/topic/com.vmware.wssdk.apiref.doc/vim.VirtualMachine.html
+		//
 
 		var vms []mo.VirtualMachine
 		err = v3.Retrieve(ctx, []string{"VirtualMachine"}, []string{"summary"}, &vms)
@@ -258,9 +220,9 @@ func main() {
 			return
 		}
 
-//
-// Print summary per vm (see also: govc/vm/info.go)
-//
+		//
+		// Print summary per vm (see also: govc/vm/info.go)
+		//
 
 		tw3 := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 		fmt.Printf("\n*** VM Information ***\n")
