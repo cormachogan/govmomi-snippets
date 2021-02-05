@@ -1,13 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Go code to connect to vSphere via environment
-// variables and retrieve vSphere hosts, datastores
-// and virtual machines
+// Description: 		Go code to connect to vSphere via environment
+// 						variables and retrieve vSphere hosts, datastores
+// 						and virtual machines
 //
-// -- Cormac J. Hogan (VMware)
+// Author:				Cormac J. Hogan (VMware)
 //
-// -- 25 Jan 2021
+// Date:				25 Jan 2021
 //
-//------------------------------------------------------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 package main
 

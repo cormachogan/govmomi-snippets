@@ -1,24 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Description: Go code which will return the list of Kubernetes nodes in the current context, which is then used to
-//              find the ESXi host on which the VM/node is running
+//              find the ESXi host on which the K8s VM/node is running.
 //
-//		There are also 2 pieces of simulation, one which calculated when the next maintenance schedule is
-//		due to take place on each host, and another which reports whether or not a host has a GPU
+//				There are also 2 pieces of simulation, one which calculates when the next maintenance schedule is
+//				due to take place on each host, and another which reports whether or not a host has a GPU
 //
-//		The first part is not available in vSphere (a maintenance mode scheudle which can be queried).
+//				The first part simulates a maintenance mode scheudle which can be queried (does not exist today).
 //
-//		The second part  can be implemented but we would need to know the PCI identifiers to correctly
-//		identify GPUs. Perhaps if the customer wanted a particular GPU for their workload, we could implement.
-//		Now we just randomly assign a GPU to a host to simulate this.
+//				The second part can be implemented but we would need to know the PCI identifiers to correctly
+//				identify GPUs. Perhaps if the customer wanted a particular GPU for their workload, we could implement.
+//				Now we just randomly assign a GPU to a host to simulate this.
 //
-// Author: 	Cormac Hogan
+// Author: 		Cormac Hogan
 //
-// Date: 	4 Feb 2021
+// Date: 		4 Feb 2021
 //
-// Version:	v0.1
-//
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Version:		v0.1
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -47,12 +45,13 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
+// CandidateList holds list of suitable candidates for long running jobs
 type CandidateList struct {
 	hostName        string
 	availAccTime    int
 	hasGPU          bool
 	nodeMemoryUsage int32
-	nodeCpuUsage    int32
+	nodeCPUUsage    int32
 	nodeName        string
 }
 
@@ -316,7 +315,7 @@ func main() {
 		winnerCandidate.availAccTime = 0
 		winnerCandidate.hasGPU = false
 		winnerCandidate.nodeMemoryUsage = 0
-		winnerCandidate.nodeCpuUsage = 999999 // values returned from node statistics should be less than this value
+		winnerCandidate.nodeCPUUsage = 999999 // values returned from node statistics should be less than this value
 		winnerCandidate.nodeName = ""
 
 		if suitableCandidates == 0 {
@@ -329,13 +328,13 @@ func main() {
 			for _, newentry := range bestCandidates {
 				fmt.Fprintf(tw, "\t\t%s does have a GPU: status is %v\n", newentry.hostName, newentry.hasGPU)
 				fmt.Fprintf(tw, "\t\tDesired access time %v is less than Available Accelerator Time %v\n", desiredAcceleratorTime, newentry.availAccTime)
-				fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", newentry.nodeName, newentry.nodeCpuUsage)
+				fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", newentry.nodeName, newentry.nodeCPUUsage)
 				fmt.Fprintf(tw, "\t\tNode %s Memory Usage is %v MB\n", newentry.nodeName, newentry.nodeMemoryUsage)
 				fmt.Fprintf(tw, "---\n")
 
 				winnerCandidate.hostName = newentry.hostName
 				winnerCandidate.nodeMemoryUsage = newentry.nodeMemoryUsage
-				winnerCandidate.nodeCpuUsage = newentry.nodeCpuUsage
+				winnerCandidate.nodeCPUUsage = newentry.nodeCPUUsage
 				winnerCandidate.nodeName = newentry.hostName
 			}
 		} else {
@@ -346,16 +345,16 @@ func main() {
 			for _, newentry := range bestCandidates {
 				fmt.Fprintf(tw, "\t\t%s does have a GPU: status is %v\n", newentry.hostName, newentry.hasGPU)
 				fmt.Fprintf(tw, "\t\tDesired access time %v is less than Available Accelerator Time %v\n", desiredAcceleratorTime, newentry.availAccTime)
-				fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", newentry.nodeName, newentry.nodeCpuUsage)
+				fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", newentry.nodeName, newentry.nodeCPUUsage)
 				fmt.Fprintf(tw, "\t\tNode %s Memory Usage is %v MB\n", newentry.nodeName, newentry.nodeMemoryUsage)
 				fmt.Fprintf(tw, "---\n")
 				//
 				// Pick best candidate based on lowest CPU Usage, it will be large on the first iteration
 				//
-				if newentry.nodeCpuUsage < winnerCandidate.nodeCpuUsage {
+				if newentry.nodeCPUUsage < winnerCandidate.nodeCPUUsage {
 					winnerCandidate.hostName = newentry.hostName
 					winnerCandidate.nodeMemoryUsage = newentry.nodeMemoryUsage
-					winnerCandidate.nodeCpuUsage = newentry.nodeCpuUsage
+					winnerCandidate.nodeCPUUsage = newentry.nodeCPUUsage
 					winnerCandidate.nodeName = newentry.hostName
 				}
 
@@ -365,7 +364,7 @@ func main() {
 		fmt.Fprintf(tw, "Winner:\n")
 		fmt.Fprintf(tw, "\t\tWinning node is %s \n", winnerCandidate.nodeName)
 		fmt.Fprintf(tw, "\t\tWinning host is is %v\n", winnerCandidate.hostName)
-		fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", winnerCandidate.nodeName, winnerCandidate.nodeCpuUsage)
+		fmt.Fprintf(tw, "\t\tNode %s CPU Usage is %v MHz\n", winnerCandidate.nodeName, winnerCandidate.nodeCPUUsage)
 		fmt.Fprintf(tw, "\t\tNode %s Memory Usage is %v MB\n", winnerCandidate.nodeName, winnerCandidate.nodeMemoryUsage)
 		fmt.Fprintf(tw, "---\n")
 

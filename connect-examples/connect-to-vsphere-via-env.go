@@ -1,14 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Go code to connect to vSphere via environment
-// variables and retrieve the defautl datacenter
+// Description:		Go code to connect to vSphere via environment
+// 					variables and retrieve the defautl datacenter
 //
-// -- Cormac J. Hogan (VMware)
+// Author:			Cormac J. Hogan (VMware)
 //
-// -- 25 Jan 2021
+// Date:			25 Jan 2021
 //
-//------------------------------------------------------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // client information from Doug MacEachern:
+// ----------------------------------------
 //
 // govmomi.Client extends vim25.Client
 // govmomi.Client does nothing extra aside from automatic login
@@ -24,23 +26,13 @@
 // It may generate more response data however.
 //
 // Finder was written for govc, where we treat the vSphere inventory as a virtual filesystem.
-// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths, wildcard matching, etc.
+// The inventory path as input to `govc` behaves similar to the `ls` command, with support for relative paths,
+// wildcard matching, etc.
 //
 // Use govc commands as a reference, and "godoc" for examples that can be run against `vcsim`:
 // See: https://godoc.org/github.com/vmware/govmomi/view#pkg-examples
 //
-//------------------------------------------------------------------------------------------------------------------------------------
-//
-// functionality comes from the following packages
-//
-//    context        - https://golang.org/pkg/context/
-//    flag           - https://golang.org/pkg/flag/
-//    fmt            - https://golang.org/pkg/fmt/
-//    net/url        - https://golang.org/pkg/net/url/
-//    os             - https://golang.org/pkg/os/
-//    text/tabwriter - https://golang.org/pkg/text/tabwriter/
-//
-//    govmomi        - https://github.com/vmware/govmomi
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 package main
 
@@ -101,7 +93,7 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Println("URL parsing not successful, error %v", err)
+		fmt.Printf("URL parsing not successful, error %v", err)
 		return
 	}
 
@@ -110,7 +102,7 @@ func main() {
 	c, err := govmomi.NewClient(ctx, u, insecure)
 
 	if err != nil {
-		fmt.Println("Log in not successful- could not get vCenter client: %v", err)
+		fmt.Printf("Log in not successful- could not get vCenter client: %v", err)
 		return
 	} else {
 		fmt.Println("Log in successful")

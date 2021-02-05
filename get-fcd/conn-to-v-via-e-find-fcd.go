@@ -1,3 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Description: Go code which returns First Class Disk Information. FCDs are the storage objects which back
+//				Kubernetes Persistent Volumes whent they are instantiated on vSphere storage
+//
+// Author: 		Cormac Hogan
+//
+// Date: 		4 Feb 2021
+//
+// Version:		v0.1
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 package main
 
 import (
@@ -47,7 +60,7 @@ func main() {
 	if len(vc) > 0 {
 		fmt.Printf("DEBUG: vc is %s\n", vc)
 	} else {
-		fmt.Printf("Unable to find env var GOVMOMI_URL, has it been set?\n", vc)
+		fmt.Printf("Unable to find env var GOVMOMI_URL, has it been set?\n")
 		return
 	}
 
@@ -56,7 +69,7 @@ func main() {
 	if len(user) > 0 {
 		fmt.Printf("DEBUG: user is %s\n", user)
 	} else {
-		fmt.Printf("Unable to find env var GOVMOMI_USERNAME, has it been set?\n", vc)
+		fmt.Printf("Unable to find env var GOVMOMI_USERNAME, has it been set?\n")
 		return
 	}
 	pwd := os.Getenv("GOVMOMI_PASSWORD")
@@ -64,7 +77,7 @@ func main() {
 	if len(pwd) > 0 {
 		fmt.Printf("DEBUG: password is %s\n", pwd)
 	} else {
-		fmt.Printf("Unable to find env GOVMOMI_PASSWORD, has it been set?\n", vc)
+		fmt.Printf("Unable to find env GOVMOMI_PASSWORD, has it been set?\n")
 		return
 	}
 
@@ -241,7 +254,7 @@ func main() {
 		err = s.Login(ctx, c2, nil)
 
 		if err != nil {
-			fmt.Println("Log in not successful (vim25) - could not get vCenter client: %v", err)
+			fmt.Printf("Log in not successful (vim25) - could not get vCenter client: %v", err)
 			return
 		} else {
 			fmt.Println("Log in successful (vim25)")
