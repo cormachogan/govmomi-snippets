@@ -127,11 +127,11 @@ func main() {
 		fmt.Println("Log in not successful (govmomi) - could not get vCenter client: ", err)
 		fmt.Println("")
 		return
-	} else {
-		fmt.Println("")
-		fmt.Println("Log in successful (govmomi)")
-		fmt.Println("")
 	}
+
+	fmt.Println("")
+	fmt.Println("Log in successful (govmomi)")
+	fmt.Println("")
 
 	//
 	// -- "find" implements inventory listing and searching.
@@ -231,7 +231,19 @@ func main() {
 	//
 	//-------------------------------------------------------------------
 
+	//
+	// Create a view manager - a mechanism that supports selection of objects on the server and subsequently, access to those objects.
+	//
+	// Ref: https://vdc-download.vmware.com/vmwb-repository/dcr-public/b50dcbbf-051d-4204-a3e7-e1b618c1e384/538cf2ec-b34f-4bae-a332-3820ef9e7773/vim.view.ViewManager.html
+	//
+
 	m := view.NewManager(vimc)
+
+	//
+	// Create a container view (a means of monitoring the contents of a single container) of HostSystem objects
+	//
+	// Ref: https://vdc-download.vmware.com/vmwb-repository/dcr-public/b50dcbbf-051d-4204-a3e7-e1b618c1e384/538cf2ec-b34f-4bae-a332-3820ef9e7773/vim.view.ContainerView.html
+	//
 
 	v, err := m.CreateContainerView(ctx, vimc.ServiceContent.RootFolder, []string{"HostSystem"}, true)
 	if err != nil {
@@ -300,11 +312,11 @@ func main() {
 		fmt.Println("Log in not successful (govmomi) - could not get vCenter client: ", err)
 		fmt.Println("")
 		return
-	} else {
-		fmt.Println("")
-		fmt.Println("Log in successful (govmomi)")
-		fmt.Println("")
 	}
+
+	fmt.Println("")
+	fmt.Println("Log in successful (govmomi)")
+	fmt.Println("")
 
 	//
 	// -- find implements inventory listing and searching.

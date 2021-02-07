@@ -35,6 +35,11 @@ import (
 )
 
 func main() {
+
+	//
+	// Find the KUBECONFIG, which is most likely $HOME/.kube/config
+	//
+
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -138,13 +143,18 @@ func main() {
 		fmt.Println("Log in successful")
 
 		//
-		// Create a view manager
+		// Create a view manager - a mechanism that supports selection of objects on the server and subsequently, access to those objects.
+		//
+		// Ref: https://vdc-download.vmware.com/vmwb-repository/dcr-public/b50dcbbf-051d-4204-a3e7-e1b618c1e384/538cf2ec-b34f-4bae-a332-3820ef9e7773/vim.view.ViewManager.html
 		//
 
 		m := view.NewManager(c)
 
 		//
-		// Create a container view of VM objects
+		// Create a container view (a means of monitoring the contents of a single container) of VM objects
+		//
+		// Ref: https://vdc-download.vmware.com/vmwb-repository/dcr-public/b50dcbbf-051d-4204-a3e7-e1b618c1e384/538cf2ec-b34f-4bae-a332-3820ef9e7773/vim.view.ContainerView.html
+		//
 		//
 
 		v, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
@@ -173,7 +183,9 @@ func main() {
 		}
 
 		//
-		// Create a container view of HostSystem objects
+		// Create a container view (a means of monitoring the contents of a single container) of Hostsystem objects
+		//
+		// Ref: https://vdc-download.vmware.com/vmwb-repository/dcr-public/b50dcbbf-051d-4204-a3e7-e1b618c1e384/538cf2ec-b34f-4bae-a332-3820ef9e7773/vim.view.ContainerView.html
 		//
 
 		h, err := m.CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"HostSystem"}, true)
@@ -198,11 +210,13 @@ func main() {
 			fmt.Printf("Unable to retrieve Host information: error %s", err)
 			return
 		}
+
 		//
 		// Print summary per vm
 		//
 		// -- https://golang.org/pkg/text/tabwriter/#NewWriter
 		//
+
 		tw := tabwriter.NewWriter(os.Stdout, 4, 0, 4, ' ', 0)
 
 		for i := 0; i < len(nodes.Items); i++ {
@@ -226,9 +240,11 @@ func main() {
 							fmt.Fprintf(tw, "%s\t", hs.Summary.Config.Name)
 						}
 					}
+
 					//
 					// Simulation Code for generating next maintenance slot, in hours
 					//
+
 					fmt.Fprintf(tw, "%v\t", rand.Intn(max-min+1)+min)
 
 					fmt.Fprintf(tw, "%s\n", vm.Summary.Config.Name)
