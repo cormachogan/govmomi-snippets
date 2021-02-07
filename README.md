@@ -7,24 +7,29 @@ A few example govmomi scripts, mostly involving how to connect to vSphere and re
 For first time use, run the following:
 
 ```shell
-% export GO111MODULE=on
-% go get k8s.io/client-go@master
 % go mod init 
 % go build <Filename>.go 
 % go run <Filename>.go
 ```
 
-For subsequent runs, once the imports are local, simply run:
+You may need to pull some go modules imported, e.g. for Kubernetes, you may need client-go:
+
+```shell
+% export GO111MODULE=on
+% go get k8s.io/client-go@master
+```
+
+For subsequent runs, once the modules/imports are local, simply run:
 
 ```shell
  % go run <Filename>.go
 ```
 
-Notes on running "go build": <https://github.com/kubernetes/client-go/blob/master/INSTALL.md#for-the-casual-user>
+Notes on (running "go build")<https://github.com/kubernetes/client-go/blob/master/INSTALL.md#for-the-casual-user>
 
 ## About the scripts ##
 
-Two of the modules show the different ways to connect to vSphere
+The examples show the different ways to connect to vSphere:
 
 - via URL
 - via environment variables
