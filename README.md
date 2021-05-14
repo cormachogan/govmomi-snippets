@@ -1,4 +1,4 @@
-# govmomi-examples #
+# govmomi-snippets #
 
 A few example govmomi scripts, mostly involving how to connect to vSphere and retrieve some infrastructure information. I've tried to add as many comment to the code as possible as there is not a lot of documentation on how to code govmomi. There are [some other examples here](https://pkg.go.dev/github.com/vmware/govmomi/view#pkg-examples).
 
