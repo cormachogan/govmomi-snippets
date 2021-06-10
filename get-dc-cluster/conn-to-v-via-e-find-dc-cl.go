@@ -21,6 +21,10 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/session/cache"
+	"github.com/vmware/govmomi/view"
+	"github.com/vmware/govmomi/vim25"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
 )
 
@@ -102,11 +106,49 @@ func main() {
 
 		cl, err := finder.DefaultClusterComputeResource(ctx)
 
-		if err != nil {
-			fmt.Printf("Could not get default cluster : error %s\n", err)
-		} else {
+		if err == nil {
 			fmt.Printf("Default cluster %s found\n", cl)
+		} else {
+			fmt.Printf("Could not get default cluster : error %s\n", err)
 		}
+
+		// Default Cluster not found, maybe have multiple clusters
+		// Display list of all clusters, but swith to vim25.client
+		fmt.Println("Default Cluster not found, maybe have multiple clusters")
+
+		s := &cache.Session{
+			URL:      u,
+			Insecure: true,
+		}
+
+		vimc := new(vim25.Client)
+
+		err = s.Login(ctx, vimc, nil)
+
+		if err != nil {
+			fmt.Println("")
+			fmt.Println("Log in not successful (vim25) - could not get vCenter client: ", err)
+			fmt.Println("")
+		} else {
+			fmt.Println("")
+			fmt.Println("Log in successful (vim25)")
+			fmt.Println("")
+		}
+
+		m := view.NewManager(vimc)
+		v, err := m.CreateContainerView(ctx, vimc.ServiceContent.RootFolder, []string{"ClusterComputeResource"}, true)
+		var clusters []mo.ClusterComputeResource
+		err = v.Retrieve(ctx, []string{"ClusterComputeResource"}, []string{"name"}, &clusters)
+
+		if err != nil {
+			fmt.Printf("Could not get list of clusters : error %s\n", err)
+		} else {
+			for _, cluster := range clusters {
+				fmt.Println("Found a cluster:", cluster.Name)
+			}
+		}
+
+		defer v.Destroy(ctx)
 
 		c.Logout(ctx)
 	}
