@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -47,7 +48,7 @@ func main() {
 //
 // Create a vSphere/vCenter client
 //
-//    The govmomi client requires a URL object, u, not just a string representation of the vCenter URL.
+//    The vim25 client requires a URL object, u, not just a string representation of the vCenter URL.
 
         u, err := soap.ParseURL(vc)
 
@@ -83,25 +84,33 @@ func main() {
 	}
 
 //
-// -- Just get tags of VMs
+// -- Just get tags of VMs -- e.g. https://github.com/vmware/govmomi/blob/master/vapi/tags/example_test.go
 //
+
 	v, err := view.NewManager(c).CreateContainerView(ctx, c.ServiceContent.RootFolder, []string{"VirtualMachine"}, true)
 	if err != nil {
 	}
 
-	vms, err := v.Find(ctx, nil, property.Filter{}) // List all VMs in the inventory
+// List all VMs in the inventory
+	vms, err := v.Find(ctx, nil, property.Filter{})
 	if err != nil {
                 fmt.Println("Error in find", err)
 	}
-	refs := make([]mo.Reference, len(vms)) // Convert list type
+
+// Convert list type
+	refs := make([]mo.Reference, len(vms))
 	for i := range vms {
 		refs[i] = vms[i]
 	}
 
 //
-//-- e.g. https://github.com/vmware/govmomi/blob/master/vapi/tags/example_test.go
+// -- This section of code will print tags associated with VMs only, which will have a list of refs for
 //
+        fmt.Println("\n-- First mechanism -- VM Objects\n")
 
+
+//
+// -- using the rest client for tags (rest client uses vim25 client)
 //
 //    rc - Return the client object rc
 //    err - Return the error object err
@@ -116,11 +125,6 @@ func main() {
         } else {
                 fmt.Println("Log in (rest) successful")
 	}
-//
-// -- This will print tags associated with VMs only
-//
-        fmt.Println("\n-- First mechanism -- VM Objects\n")
-
 	m := tags.NewManager(rc)
 	attached, err := m.GetAttachedTagsOnObjects(ctx, refs)
 
@@ -144,43 +148,49 @@ func main() {
 //
 // Now print the tags for the VM
 //
-	                for _, found_tag := range vm.Tags {
-	                        fmt.Println ("Found Tag Name: ", found_tag.Name)
-	                }
-	                fmt.Println("\n")
-	        }
+                for _, found_tag := range vm.Tags {
+                        fmt.Println ("Found Tag Name: ", found_tag.Name)
+                }
+                fmt.Println("\n")
+        }
 
 //
 // Try another way -- for all Objects, not just VMs
 //
-	        fmt.Println("\n-- Alternate mechanism -- All Objects\n")
+        fmt.Println("\n-- Alternate mechanism -- All Objects\n")
 
+//
+// Get a list of all tags
+//
+        tagList, err := m.ListTags(ctx)
+        if err != nil {
+                fmt.Println("Could not get list of tags, error %v\n", err)
+        }
 
-	        tagList, err := m.ListTags(ctx)
-	        if err != nil {
-	                fmt.Println("Could not get list of tags, error %v\n", err)
-	        }
-
-	        for _, tag := range tagList {
-	                fmt.Println("Found a Tag in list of Tags:", tag)
-
-	                taginfo, err := m.GetTag(ctx, tag)
-			if err != nil {
-				fmt.Println("Could not get tag info, error %v\n", err)
-			}
-
-			fmt.Println("Found Tag Name:", taginfo.Name)
-
-			attached2, err := m.GetAttachedObjectsOnTags(ctx, []string{tag})
-			if err != nil {
-				fmt.Println("Could not get list of objects with tags, error %v\n", err)
-			}
-
-			for _, item := range attached2 {
-				fmt.Println("Found Inventory Item(s) with Tag:", item)
-				fmt.Println("\n")
-			}
+        for _, tag := range tagList {
+                fmt.Println("Found a Tag in list of Tags:", tag)
+//
+// Get Tag details
+//
+                taginfo, err := m.GetTag(ctx, tag)
+		if err != nil {
+			fmt.Println("Could not get tag info, error %v\n", err)
 		}
-		fmt.Println("\n")
+
+		fmt.Println("Found Tag Name:", taginfo.Name)
+//
+// Get Inventory Items that are using the Tags
+//
+		attached2, err := m.GetAttachedObjectsOnTags(ctx, []string{tag})
+		if err != nil {
+			fmt.Println("Could not get list of objects with tags, error %v\n", err)
+		}
+
+		for _, item := range attached2 {
+			fmt.Println("Found Inventory Item(s) with Tag:", item)
+			fmt.Println("\n")
+		}
+	}
+	fmt.Println("\n")
 
 }
