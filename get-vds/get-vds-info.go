@@ -1,5 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// GOVMOMI APIs to retrieve VDS and VDS PortGroup Information
+// Description:		Go code to connect to vSphere via environment
+// 			variables and retrieve the VDS and VDS PortGroup Information
+//
+// Author:		   	Cormac J. Hogan (VMware)
+//
+// Date:			04 Jul 2021
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 //
 
 package main
@@ -65,7 +74,8 @@ func main() {
 
 	//
 	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
-	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations 
+	// sharing that context needs cancelling.
 	//
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -91,7 +101,7 @@ func main() {
 	u.User = url.UserPassword(user, pwd)
 
 	//
-	// Share govc's session cache
+	// Share session cache
 	//
 	        s := &cache.Session{
 	                URL:      u,

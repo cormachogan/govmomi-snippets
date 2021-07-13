@@ -1,13 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Description:		Go code to connect to vSphere via environment
-// 					variables and retrieve VM information
+//			variables and retrieve VM information (unformatted output)
 //
-// 					Login moved to function in this example
+// 			Login moved to function in this example
 //
-// Author:			Cormac J. Hogan (VMware)
+// Author:		Cormac J. Hogan (VMware)
 //
-// Date:			 25 Jan 2021
+// Date:		 25 Jan 2021
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +52,7 @@ func vlogin(ctx context.Context, vc, user, pwd string) (*vim25.Client, error) {
 	// Ripped from https://github.com/vmware/govmomi/blob/master/examples/examples.go
 	//
 
-	// Share govc's session cache
+	// Share session cache
 	s := &cache.Session{
 		URL:      u,
 		Insecure: true,
@@ -90,7 +90,8 @@ func main() {
 
 	//
 	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
-	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations 
+	// sharing that context needs cancelling.
 	//
 
 	ctx, cancel := context.WithCancel(context.Background())

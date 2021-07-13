@@ -62,7 +62,7 @@ func main() {
 
         u.User = url.UserPassword(user, pwd)
 //
-// Share govc's session cache
+// Share session cache
 //
         s := &cache.Session{
                 URL:      u,

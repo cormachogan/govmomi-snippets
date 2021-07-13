@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Description:			Go code to connect to vSphere via environment
-// 						variables and retrieve the default datacenter
+// 				variables and retrieve the default datacenter
 //
 // Author:				Cormac J. Hogan (VMware)
 //
@@ -76,7 +76,8 @@ func main() {
 
 	//
 	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
-	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations 
+	// sharing that context needs cancelling.
 	//
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -193,9 +194,11 @@ func main() {
 
 	//-------------------------------------------------------------------
 	//
-	// Share govc's session cache - using soap.Client and vim25.Client
-	// directly allows apps to use other authentication methods, session
-	// caching, session keepalive, retries, fine grained TLS configuration,
+	// Share session cache 
+	//
+	// Using soap.Client and vim25.Client directly allows apps to use other 
+	// authentication methods, session caching, session keepalive, retries, 
+	// fine grained TLS configuration,
 	// etc.
 	//
 	//-------------------------------------------------------------------

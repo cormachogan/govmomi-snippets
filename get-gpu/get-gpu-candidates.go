@@ -3,20 +3,20 @@
 // Description: Go code which will return the list of Kubernetes nodes in the current context, which is then used to
 //              find the ESXi host on which the K8s VM/node is running.
 //
-//				There are also 2 pieces of simulation, one which calculates when the next maintenance schedule is
-//				due to take place on each host, and another which reports whether or not a host has a GPU
+//		There are also 2 pieces of simulation, one which calculates when the next maintenance schedule is
+//		due to take place on each host, and another which reports whether or not a host has a GPU
 //
-//				The first part simulates a maintenance mode scheudle which can be queried (does not exist today).
+//		The first part simulates a maintenance mode scheudle which can be queried (does not exist today).
 //
-//				The second part can be implemented but we would need to know the PCI identifiers to correctly
-//				identify GPUs. Perhaps if the customer wanted a particular GPU for their workload, we could implement.
-//				Now we just randomly assign a GPU to a host to simulate this.
+//		The second part can be implemented but we would need to know the PCI identifiers to correctly
+//		identify GPUs. Perhaps if the customer wanted a particular GPU for their workload, we could implement.
+//		Now we just randomly assign a GPU to a host to simulate this.
 //
-// Author: 		Cormac Hogan
+// Author: 	Cormac Hogan
 //
-// Date: 		4 Feb 2021
+// Date: 	4 Feb 2021
 //
-// Version:		v0.1
+// Version:	v0.1
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,6 +74,9 @@ func main() {
 	//
 	tw := tabwriter.NewWriter(os.Stdout, 4, 0, 4, ' ', 0)
 
+        //
+	// Retrieve the KUBECONFIG
+	//
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -82,11 +85,10 @@ func main() {
 	}
 	flag.Parse()
 
-	// BuildConfigFromFlags is a helper function that builds configs from a master
-	// url or a kubeconfig filepath. These are passed in as command line flags for cluster
-	// components. Warnings should reflect this usage. If neither masterUrl or kubeconfigPath
-	// are passed in we fallback to inClusterConfig. If inClusterConfig fails, we fallback
-	// to the default config.
+	// BuildConfigFromFlags is a helper function that builds configs from a master url or a kubeconfig filepath. 
+	// These are passed in as command line flags for cluster components. Warnings should reflect this usage. 
+	// If neither masterUrl or kubeconfigPath are passed in we fallback to inClusterConfig. 
+	// If inClusterConfig fails, we fallback to the default config.
 
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
@@ -98,9 +100,11 @@ func main() {
 		panic(err)
 	}
 
+	//
+	// Get the list of K8s nodes
+	//
 	nodeList := clientSet.CoreV1().Nodes()
 	nodes, err := nodeList.List(context.TODO(), v1.ListOptions{})
-
 	if err != nil {
 		fmt.Fprintf(tw, "Error occurred: ", err)
 	}
@@ -120,7 +124,6 @@ func main() {
 	// GOVMOMI_URL
 	// GOVMOMI_USERNAME
 	// GOVMOMI_PASSWORD
-
 	vc := os.Getenv("GOVMOMI_URL")
 	user := os.Getenv("GOVMOMI_USERNAME")
 	pwd := os.Getenv("GOVMOMI_PASSWORD")
@@ -131,9 +134,9 @@ func main() {
 
 	//
 	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.
-	// If one of the operations failed, the context would be used to share the fact that all of the other operations sharing that context needs cancelling.
+	// If one of the operations failed, the context would be used to share the fact that all of the other operations 
+	// sharing that context needs cancelling.
 	//
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -141,13 +144,10 @@ func main() {
 	// Create a vSphere/vCenter client
 	//
 	//    The govmomi client requires a URL object, u, not just a string representation of the vCenter URL.
-
 	u, err := soap.ParseURL(vc)
-
 	if u == nil {
 		fmt.Fprintf(tw, "Could not parse vCenter URL (Are environment variables set?)")
 	}
-
 	if err != nil {
 		fmt.Fprintf(tw, "vCenter URL parsing not successful, error %v", err)
 		return
@@ -155,7 +155,7 @@ func main() {
 
 	u.User = url.UserPassword(user, pwd)
 	//
-	// Share govc's session cache
+	// Share session cache
 	//
 	s := &cache.Session{
 		URL:      u,
@@ -245,32 +245,33 @@ func main() {
 
 				if vm.Summary.Config.Name == nodes.Items[i].ObjectMeta.Name {
 
-					//
-					// Find ESXi Hypervisor/Host where VM/Node runs, and display relevant info  (currently just the name of the host)
-					//
+		//
+		// Find ESXi Hypervisor/Host where VM/Node runs, and display relevant info  (currently just the name of the host)
+		//
 
 					for _, hs := range hss {
 						if reflect.DeepEqual(hs.Summary.Host, vm.Summary.Runtime.Host) {
 							candidate = append(candidate, CandidateList{
 								hs.Summary.Config.Name,
-								//
-								// Simulation Code for generating next maintenance slot, in hours
-								//
+		//
+		// Simulation Code for generating next maintenance slot, in hours
+		//
 								rand.Intn(mmMax-mmMin+1) + mmMin,
 
-								//
-								// Simulation Code for randomly selecting if host has GPU or not
-								//
+		//
+		// Simulation Code for randomly selecting if host has GPU or not
+		//
 								(bool)(rand.Float32() < 0.5),
-								//
-								// Get some CPU and Memory usage stats from the node - we will use this to decide the best node in the case of multiple node candidate being available
-								//
+		//
+		// Get some CPU and Memory usage stats from the node - we will use this to decide the 
+		// best node in the case of multiple node candidate being available
+		//
 								vm.Summary.QuickStats.GuestMemoryUsage,
 								vm.Summary.QuickStats.OverallCpuDemand,
 
-								//
-								// VM Name - usually long in TKG clusters
-								//
+		//
+		// VM Name - usually long in TKG clusters
+		//
 								vm.Summary.Config.Name})
 						}
 					}
