@@ -39,9 +39,9 @@ func main() {
 	user := os.Getenv("GOVMOMI_USERNAME")
 	pwd := os.Getenv("GOVMOMI_PASSWORD")
 
-	fmt.Printf("DEBUG: vc is %s\n", vc)
-	fmt.Printf("DEBUG: user is %s\n", user)
-	fmt.Printf("DEBUG: password is %s\n", pwd)
+	//fmt.Printf("DEBUG: vc is %s\n", vc)
+	//fmt.Printf("DEBUG: user is %s\n", user)
+	//fmt.Printf("DEBUG: password is %s\n", pwd)
 
 	//
 	// Imagine that there were multiple operations taking place such as processing some data, logging into vCenter, etc.

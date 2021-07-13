@@ -1,6 +1,6 @@
 # govmomi-snippets #
 
-A few example govmomi scripts, mostly involving how to connect to vSphere and retrieve some infrastructure information. I've tried to add as many comment to the code as possible as there is not a lot of documentation on how to code govmomi. There are [some other examples here](https://pkg.go.dev/github.com/vmware/govmomi/view#pkg-examples).
+This repository container a number of sample govmomi scripts, mostly involving how to connect to vSphere and retrieve some infrastructure information. I've tried to add as many comment to the code as possible as there is not a lot of *documentation* on how to code using the vSphere GO API, govmomi. For those interested in learning more, there are [some other examples here](https://pkg.go.dev/github.com/vmware/govmomi/view#pkg-examples).
 
 ## Getting started ##
 
@@ -12,7 +12,7 @@ For first time use, run the following:
 % go run <Filename>.go
 ```
 
-You may need to pull some go modules imported, e.g. for Kubernetes, you may need client-go:
+You may need to pull some other GO modules depending on the script, e.g. for Kubernetes interactions, you may need to add *client-go*:
 
 ```shell
 % export GO111MODULE=on
@@ -37,11 +37,13 @@ The examples show the different ways to connect to vSphere:
 The other modules show how to connect and retrieve various vSphere information, e.g.
 
 - Datacenter
-- Cluster
+- Cluster / Multiple Clusters
 - Hosts
 - Datastores
 - Virtual Machines (VMs)
 - First Class Disks (FCDs) - used to back Kubernetes Persistent Volumes
+- Distributed Virtual Switches
+- Tags
 
 Finally we have two modules that use a combinatation of vSphere and Kubernetes Code modules:
 
@@ -53,66 +55,101 @@ Finally we have two modules that use a combinatation of vSphere and Kubernetes C
 Here are some example outputs, assuming the required vSphere `environment variables` have been set appropriately in the shell.
 
 ```shell
-$ go run conn-to-v-via-e-find-ho-ds-vm.go
-DEBUG: vc is vcsa-06.rainpole.com/sdk
-DEBUG: user is administrator@vsphere.local
-DEBUG: password is *********
+% cd get-all
+
+% export GOVMOMI_USERNAME=administrator@vsphere.local
+% export GOVMOMI_PASSWORD=**************
+% export GOVMOMI_URL=192.168.0.1
+
+% go run get-hosts-ds-vms.go
 Log in successful
 
 *** Host Information ***
 ------------------------
 
 Name:                           Used CPU:  Total CPU:  Free CPU:  Used Memory:  Total Memory:  Free Memory:
-esxi-dell-h.rainpole.com        1615       43980       42365      48.9GB        127.9GB        84821704704
-esxi-dell-f.rainpole.com        3832       43980       40148      58.8GB        127.9GB        74196484096
-esxi-dell-e.rainpole.com        4521       43980       39459      53.5GB        127.9GB        79893397504
-esxi-dell-g.rainpole.com        1496       43980       42484      43.3GB        127.9GB        90875133952
-vcsa06-witness-01.rainpole.com  19         4400        4381       1.3GB         16.0GB         15764742144
+esxi-dell-f.rainpole.com        3594       43980       40386      61.4GB        127.9GB        71414599680
+esxi-dell-e.rainpole.com        3812       43980       40168      68.1GB        127.9GB        64206688256
+esxi-dell-g.rainpole.com        2370       43980       41610      62.6GB        127.9GB        70141628416
+esxi-dell-h.rainpole.com        769        43980       43211      23.2GB        127.9GB        112444342272
+esxi-dell-i.rainpole.com        924        43980       43056      24.7GB        127.9GB        110847361024
+esxi-dell-j.rainpole.com        279        43980       43701      40.7GB        127.9GB        93667479552
+esxi-dell-l.rainpole.com        112        43980       43868      16.7GB        127.9GB        119402692608
+esxi-dell-k.rainpole.com        379        44000       43621      18.8GB        127.9GB        117141962752
+vcsa06-witness-01.rainpole.com  73         4400        4327       4.7GB         16.0GB         12094726144
 
 *** Datastore Information ***
 ------------------------------
 
-Name:              Type:  Capacity:  Free:
-PureVMFSDatastore  VMFS   500.0TB    499.9TB
-isilon-01          NFS    50.5TB     46.3TB
-vsanDatastore      vsan   5.8TB      5.0TB
+Name:                Type:  Capacity:  Free:
+vsan-OCTO-Cluster-A  vsan   4.4TB      2.6TB
+isilon-01            NFS    50.5TB     45.5TB
+vsan-OCTO-Cluster-C  vsan   2.2TB      2.0TB
+vsan-OCTO-Cluster-B  vsan   2.2TB      1.7TB
 
 *** VM Information ***
 -----------------------
 
-Name:                                               Guest Full Name:
-SupervisorControlPlaneVM (1):                       Other 3.x Linux (64-bit)
-vSAN File Service Node (8):                         Other 3.x or later Linux (64-bit)
-haproxy:                                            Other 3.x or later Linux (64-bit)
-vCLS (8):                                           Other 3.x or later Linux (64-bit)
-pfsense-virt-route-70-51:                           Other Linux (64-bit)
-photon-3-haproxy-v1.2.4+vmware.1:                   VMware Photon OS (64-bit)
-Ubuntu1804Template:                                 Ubuntu Linux (64-bit)
-photon-3-kube-v1.18.6+vmware.1:                     VMware Photon OS (64-bit)
-pfsense-virt-route-70-32:                           Other Linux (64-bit)
-vCLS (10):                                          Other 3.x or later Linux (64-bit)
-tkg-cluster-1-18-5b-workers-kc5xn-dd68c4685-c24l7:  VMware Photon OS (64-bit)
-tkg-cluster-1-18-5b-control-plane-4f8rq:            VMware Photon OS (64-bit)
-SupervisorControlPlaneVM (3):                       Other 3.x Linux (64-bit)
-vSAN File Service Node (1):                         Other 3.x or later Linux (64-bit)
-ubuntu-desktop:                                     Ubuntu Linux (64-bit)
-SupervisorControlPlaneVM (2):                       Other 3.x Linux (64-bit)
-tkg-cluster-1-18-5b-workers-kc5xn-dd68c4685-7rgkk:  VMware Photon OS (64-bit)
-vSAN File Service Node (3):                         Other 3.x or later Linux (64-bit)
-tkg-cluster-1-18-5b-control-plane-t59gq:            VMware Photon OS (64-bit)
-haproxy-62:                                         Other 3.x or later Linux (64-bit)
-vCLS (9):                                           Other 3.x or later Linux (64-bit)
-tkg-cluster-1-18-5b-control-plane-gh2kt:            VMware Photon OS (64-bit)
-elaine-vm:                                          Ubuntu Linux (64-bit)
-vSAN File Service Node (5):                         Other 3.x or later Linux (64-bit)
-tkg-cluster-1-18-5b-workers-kc5xn-dd68c4685-5v298:  VMware Photon OS (64-bit)
+Name:                                                      Guest Full Name:
+Avi-se-lyppw:                                              Ubuntu Linux (64-bit)
+tce-workload-nolb-md-0-79bf4489d5-b4fx5:                   VMware Photon OS (64-bit)
+vcsa06-octo-a-md-0-58d67f65cb-dlfs7:                       VMware Photon OS (64-bit)
+vCLS (34):                                                 Other 3.x or later Linux (64-bit)
+clusternew-shaun-9mcbr:                                    VMware Photon OS (64-bit)
+clusternew-shaun-md-0-fd95cf4b-mlxnp:                      VMware Photon OS (64-bit)
+adeoluwa-desktop:                                          Ubuntu Linux (64-bit)
+shaunak-desktop:                                           Ubuntu Linux (64-bit)
+Avi-se-kwpew:                                              Ubuntu Linux (64-bit)
+elaine-vm:                                                 Ubuntu Linux (64-bit)
+tce-nsx-alb:                                               Ubuntu Linux (64-bit)
+haproxy:                                                   Other 3.x or later Linux (64-bit)
+jialu-desktop:                                             Ubuntu Linux (64-bit)
+epifania-desktop:                                          Ubuntu Linux (64-bit)
+pfsense-virt-route-70-51:                                  Other Linux (64-bit)
+vCLS (17):                                                 Other 3.x or later Linux (64-bit)
+photon-3-kube-v1.20.4+vmware.1-tkg.0-2326554155028348692:  VMware Photon OS (64-bit)
+Ubuntu1804Template:                                        Ubuntu Linux (64-bit)
+tce-workload-nolb-md-0-79bf4489d5-qlpjn:                   VMware Photon OS (64-bit)
+tce-workload-nolb-md-0-79bf4489d5-jg2g2:                   VMware Photon OS (64-bit)
+tce-workload-nolb-control-plane-qst5c:                     VMware Photon OS (64-bit)
+photon-3-kube-v1.18.6+vmware.1:                            VMware Photon OS (64-bit)
+ubuntu-20-04-desktop-template:                             Ubuntu Linux (64-bit)
+k8s-worker-01:                                             Ubuntu Linux (64-bit)
+pfsense-virt-route-70-32:                                  Other Linux (64-bit)
+richard-desktop:                                           Ubuntu Linux (64-bit)
+vcsa06-octo-a-control-plane-ztjxt:                         VMware Photon OS (64-bit)
+haproxy-62:                                                Other 3.x or later Linux (64-bit)
+k8s-controlplane-01:                                       Ubuntu Linux (64-bit)
+photon-3-haproxy-v1.2.4+vmware.1:                          VMware Photon OS (64-bit)
+k8s-worker-04:                                             Ubuntu Linux (64-bit)
+vCLS (30):                                                 Other 3.x or later Linux (64-bit)
+vSAN File Service Node (1):                                Other 3.x or later Linux (64-bit)
+k8s-worker-03:                                             Ubuntu Linux (64-bit)
+vCLS (45):                                                 Other 3.x or later Linux (64-bit)
+vSAN File Service Node (2):                                Other 3.x or later Linux (64-bit)
+vCLS (44):                                                 Other 3.x or later Linux (64-bit)
+vCLS (46):                                                 Other 3.x or later Linux (64-bit)
+K8s-Worker-06:                                             Ubuntu Linux (64-bit)
+k8s-worker-02:                                             Ubuntu Linux (64-bit)
+photon-3-kube-v1.20.5+vmware.1:                            VMware Photon OS (64-bit)
+Ubuntu2010Template:                                        Ubuntu Linux (64-bit)
+vCLS (41):                                                 Other 3.x or later Linux (64-bit)
+vCLS (43):                                                 Other 3.x or later Linux (64-bit)
+k8s-worker-05:                                             Ubuntu Linux (64-bit)
+ucc-demo:                                                  Ubuntu Linux (64-bit)
+vCLS (42):                                                 Other 3.x or later Linux (64-bit)
+photon-3-kube-v1.20.5+vmware.2:                            VMware Photon OS (64-bit)
+tkgm-ldap-ui:                                              Ubuntu Linux (64-bit)
 ```
 
 ```shell
-$ go run conn-to-v-via-e-find-fcd.go
-DEBUG: vc is vcsa-06.rainpole.com/sdk
-DEBUG: user is administrator@vsphere.local
-DEBUG: password is ************
+% cd get-fcd
+
+% export GOVMOMI_USERNAME=administrator@vsphere.local
+% export GOVMOMI_PASSWORD=**************
+% export GOVMOMI_URL=192.168.0.1
+
+% go run get-fcds.go
 
 Log in successful (govmomi)
 
